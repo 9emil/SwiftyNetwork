@@ -169,6 +169,7 @@ extension SwiftyNetwork {
     public func request<T: Decodable>(endpoint: String,
                                       body: Encodable? = nil,
                                       requestType: HttpType,
+                                      urlParameters: [URLQueryItem]? = nil,
                                       withToken: Bool) async -> BackendResponse<T> {
         guard let baseURL else {
             delegate?.addLogString("Missing baseURL for endpoint: \(endpoint)")
@@ -177,6 +178,7 @@ extension SwiftyNetwork {
         return await request(url: baseURL.absoluteString + endpoint,
                              body: body,
                              requestType: requestType,
+                             urlParameters: urlParameters,
                              withToken: withToken)
     }
 
@@ -238,6 +240,7 @@ extension SwiftyNetwork {
     public func request(endpoint: String,
                         body: Encodable? = nil,
                         requestType: HttpType,
+                        urlParameters: [URLQueryItem]? = nil,
                         withToken: Bool) async -> BackendResponse<Void> {
         guard let baseURL else {
             delegate?.addLogString("Missing baseURL for endpoint: \(endpoint)")
@@ -246,6 +249,7 @@ extension SwiftyNetwork {
         return await request(url: baseURL.absoluteString + endpoint,
                              body: body,
                              requestType: requestType,
+                             urlParameters: urlParameters,
                              withToken: withToken)
     }
 
