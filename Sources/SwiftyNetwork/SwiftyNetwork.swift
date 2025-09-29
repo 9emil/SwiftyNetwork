@@ -73,10 +73,18 @@ public class SwiftyNetwork {
     internal func generateRequestFrom(url: String,
                                       requestType: HttpType,
                                       body: Encodable?,
+                                      urlParameters: [URLQueryItem]? = nil,
                                       withToken: Bool) -> URLRequest? {
-        guard let url = URL(string: url) else {
+        guard var url = URL(string: url) else {
             delegate?.addLogString("Invalid URL: \(url)")
             return nil
+        }
+        if let urlParameters {
+            if #available(iOS 16.0, *) {
+                url = url.appending(queryItems: urlParameters)
+            } else {
+                url = url.appendingQueryItems(urlParameters)
+            }
         }
         var request = requestForUrl(url, httpMethod: requestType.rawValue)
         if withToken {
@@ -125,10 +133,12 @@ extension SwiftyNetwork {
     public func request<T: Decodable>(url: String,
                                       body: Encodable? = nil,
                                       requestType: HttpType,
+                                      urlParameters: [URLQueryItem]? = nil,
                                       withToken: Bool) async -> BackendResponse<T> {
         guard let request = generateRequestFrom(url: url,
                                                 requestType: requestType,
                                                 body: body,
+                                                urlParameters: urlParameters,
                                                 withToken: withToken) else {
             return .failure(status: UnknownResponse(code: -1), body: nil)
         }
@@ -189,10 +199,12 @@ extension SwiftyNetwork {
     public func request(url: String,
                         body: Encodable? = nil,
                         requestType: HttpType,
+                        urlParameters: [URLQueryItem]? = nil,
                         withToken: Bool) async -> BackendResponse<Void> {
         guard let request = generateRequestFrom(url: url,
                                                 requestType: requestType,
                                                 body: body,
+                                                urlParameters: urlParameters,
                                                 withToken: withToken) else {
             return .failure(status: UnknownResponse(code: -1), body: nil)
         }
