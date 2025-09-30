@@ -74,7 +74,7 @@ public class SwiftyNetwork {
                                       requestType: HttpType,
                                       body: Encodable?,
                                       urlParameters: [URLQueryItem]? = nil,
-                                      withToken: Bool) -> URLRequest? {
+                                      withToken: Bool = false) -> URLRequest? {
         guard var url = URL(string: url) else {
             delegate?.addLogString("Invalid URL: \(url)")
             return nil
@@ -134,7 +134,7 @@ extension SwiftyNetwork {
                                       body: Encodable? = nil,
                                       requestType: HttpType,
                                       urlParameters: [URLQueryItem]? = nil,
-                                      withToken: Bool) async -> BackendResponse<T> {
+                                      withToken: Bool = false) async -> BackendResponse<T> {
         guard let request = generateRequestFrom(url: url,
                                                 requestType: requestType,
                                                 body: body,
@@ -170,7 +170,7 @@ extension SwiftyNetwork {
                                       body: Encodable? = nil,
                                       requestType: HttpType,
                                       urlParameters: [URLQueryItem]? = nil,
-                                      withToken: Bool) async -> BackendResponse<T> {
+                                      withToken: Bool = false) async -> BackendResponse<T> {
         guard let baseURL else {
             delegate?.addLogString("Missing baseURL for endpoint: \(endpoint)")
             return .failure(status: UnknownResponse(rawValue: -1)!, body: nil)
@@ -202,7 +202,7 @@ extension SwiftyNetwork {
                         body: Encodable? = nil,
                         requestType: HttpType,
                         urlParameters: [URLQueryItem]? = nil,
-                        withToken: Bool) async -> BackendResponse<Void> {
+                        withToken: Bool = false) async -> BackendResponse<Void> {
         guard let request = generateRequestFrom(url: url,
                                                 requestType: requestType,
                                                 body: body,
@@ -241,7 +241,7 @@ extension SwiftyNetwork {
                         body: Encodable? = nil,
                         requestType: HttpType,
                         urlParameters: [URLQueryItem]? = nil,
-                        withToken: Bool) async -> BackendResponse<Void> {
+                        withToken: Bool = false) async -> BackendResponse<Void> {
         guard let baseURL else {
             delegate?.addLogString("Missing baseURL for endpoint: \(endpoint)")
             return .failure(status: UnknownResponse(rawValue: -1)!, body: nil)
@@ -281,7 +281,7 @@ extension SwiftyNetwork {
                                                fileName: String,
                                                dataToUpload: Data,
                                                requestType: HttpType,
-                                               withToken: Bool) async -> BackendResponse<T> {
+                                               withToken: Bool = false) async -> BackendResponse<T> {
         guard let url = URL(string: urlString) else {
             return .failure(status: UnknownResponse(code: -1), body: nil)
         }
@@ -344,7 +344,7 @@ extension SwiftyNetwork {
                                                fileName: String,
                                                dataToUpload: Data,
                                                requestType: HttpType,
-                                               withToken: Bool) async -> BackendResponse<T> {
+                                               withToken: Bool = false) async -> BackendResponse<T> {
         guard let baseURL else {
             delegate?.addLogString("Missing baseURL for endpoint: \(endpoint)")
             return .failure(status: UnknownResponse(rawValue: -1)!, body: nil)
