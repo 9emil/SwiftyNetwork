@@ -216,7 +216,11 @@ extension SwiftyNetwork {
             let status = ResponseStatusCode.from(statusCode ?? -1)?
                 .responseStatus(from: statusCode ?? -1)
                 ?? UnknownResponse(code: statusCode ?? -1)
-            return .noContent(status: status)
+            if status.category == .successful {
+                return .noContent(status: status)
+            } else {
+                return .failure(status: status, body: nil)
+            }
         } catch {
             delegate?.addLogString("Backend call error: \(error.localizedDescription)")
             return .failure(status: UnknownResponse(code: -1), body: nil)
@@ -374,7 +378,7 @@ extension SwiftyNetwork {
 
         switch status.category {
         case .successful:
-            if data.isEmpty {
+            if data.isEmpty && status.category == .successful {
                 return .noContent(status: status)
             }
             do {
