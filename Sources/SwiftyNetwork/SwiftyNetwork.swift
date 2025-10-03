@@ -211,7 +211,7 @@ extension SwiftyNetwork {
             return .failure(status: UnknownResponse(code: -1), body: nil)
         }
         do {
-            let (_, response) = try await session.data(for: request)
+            let (data, response) = try await session.data(for: request)
             let statusCode = (response as? HTTPURLResponse)?.statusCode
             let status = ResponseStatusCode.from(statusCode ?? -1)?
                 .responseStatus(from: statusCode ?? -1)
@@ -219,7 +219,7 @@ extension SwiftyNetwork {
             if status.category == .successful {
                 return .noContent(status: status)
             } else {
-                return .failure(status: status, body: nil)
+                return .failure(status: status, body: data)
             }
         } catch {
             delegate?.addLogString("Backend call error: \(error.localizedDescription)")
