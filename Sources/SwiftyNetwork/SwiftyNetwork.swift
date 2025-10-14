@@ -19,6 +19,9 @@ public class SwiftyNetwork {
     internal var token: String?
     internal let baseURL: URL?
 
+    // MARK: - JSON decoding configuration
+    private let dateDecodingStrategy: JSONDecoder.DateDecodingStrategy
+
     // MARK: - Init
     // MARK: - Init (without baseURL)
     /// Creates a new `SwiftyNetwork` instance without a predefined base URL.
@@ -28,14 +31,17 @@ public class SwiftyNetwork {
     ///               Defaults to `DefaultSwiftyDelegate()`.
     ///   - token: Optional initial authentication token (e.g. a bearer token).
     ///            Can be updated later using `updateToken(_:)`.
+    ///   - dateDecoder: The date decoding strategy to apply to JSON decoding. Defaults to `.iso8601`.
     ///
     /// - Note: Use this initializer if your requests will always specify a full URL.
     ///         If your backend has a common root, prefer the `init(baseURL:delegate:token:)` initializer.
     public init(delegate: SwiftyDelegate? = DefaultSwiftyDelegate(),
-                token: String? = nil) {
+                token: String? = nil,
+                dateDecoder: JSONDecoder.DateDecodingStrategy = .iso8601) {
         self.delegate = delegate
         self.token = token
         self.baseURL = nil
+        self.dateDecodingStrategy = dateDecoder
     }
 
     /// Creates a new `SwiftyNetwork` instance bound to a specific API base URL.
@@ -47,18 +53,21 @@ public class SwiftyNetwork {
     ///               Defaults to `DefaultSwiftyDelegate()`.
     ///   - token: Optional initial authentication token (e.g. a bearer token).
     ///            Can be updated later with `updateToken(_:)`.
+    ///   - dateDecoder: The date decoding strategy to apply to JSON decoding. Defaults to `.iso8601`.
     ///
     /// - Note: This initializer will `fatalError` if the given `baseURL` string
     ///         cannot be converted into a valid `URL`.
     public init(baseURL: String,
                 delegate: SwiftyDelegate? = DefaultSwiftyDelegate(),
-                token: String? = nil) {
+                token: String? = nil,
+                dateDecoder: JSONDecoder.DateDecodingStrategy = .iso8601) {
         guard let url = URL(string: baseURL) else {
             fatalError("Invalid baseURL: \(baseURL)")
         }
         self.baseURL = url
         self.delegate = delegate
         self.token = token
+        self.dateDecodingStrategy = dateDecoder
     }
 
     // MARK: - Token management
@@ -80,7 +89,7 @@ public class SwiftyNetwork {
             return nil
         }
         if let urlParameters {
-            if #available(iOS 16.0, *) {
+            if #available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *) {
                 url = url.appending(queryItems: urlParameters)
             } else {
                 url = url.appendingQueryItems(urlParameters)
@@ -382,7 +391,9 @@ extension SwiftyNetwork {
                 return .noContent(status: status)
             }
             do {
-                let decoded = try JSONDecoder().decode(T.self, from: data)
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = dateDecodingStrategy
+                let decoded = try decoder.decode(T.self, from: data)
                 return .success(decoded, status: status)
             } catch {
                 delegate?.addLogString("Decoding error for \(T.self): \(error)")
