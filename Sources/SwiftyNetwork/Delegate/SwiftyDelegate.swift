@@ -26,4 +26,8 @@ public protocol SwiftyDelegate: AnyObject {
     /// Called when the backend signals that it is temporarily unavailable
     /// (e.g. due to `429 Too Many Requests`).
     func backendUnavailable()
+
+    /// Called when a backend response included x-unix-date to allow app to see difference in time
+    /// Moment includes miliseconds
+    func serverTime(moment: Double)
 }

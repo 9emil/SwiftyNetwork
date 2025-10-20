@@ -222,6 +222,8 @@ extension SwiftyNetwork {
         do {
             let (data, response) = try await session.data(for: request)
             let statusCode = (response as? HTTPURLResponse)?.statusCode
+            handleServerMomentFromHeader(response as? HTTPURLResponse)
+
             let status = ResponseStatusCode.from(statusCode ?? -1)?
                 .responseStatus(from: statusCode ?? -1)
                 ?? UnknownResponse(code: statusCode ?? -1)
@@ -320,6 +322,7 @@ extension SwiftyNetwork {
                 .responseStatus(from: statusCode ?? -1)
                 ?? UnknownResponse(code: statusCode ?? -1)
 
+            handleServerMomentFromHeader(response as? HTTPURLResponse)
             // If T is Void, return noContent; otherwise decode JSON
             if T.self == Void.self {
                 return BackendResponse<T>.noContent(status: status)
@@ -419,5 +422,15 @@ extension SwiftyNetwork {
         body.append(data)
         body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
         return body
+    }
+
+    private func handleServerMomentFromHeader(_ response: HTTPURLResponse?) {
+        guard let response else {
+            return
+        }
+        if let serverMomentString = response.value(forHTTPHeaderField: "x-unix-date"),
+           let serverMoment = Double(serverMomentString) {
+            delegate?.serverTime(moment: serverMoment)
+        }
     }
 }
