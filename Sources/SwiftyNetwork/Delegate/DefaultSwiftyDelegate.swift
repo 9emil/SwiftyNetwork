@@ -31,4 +31,10 @@ public final class DefaultSwiftyDelegate: SwiftyDelegate {
         print("SwiftyNetwork: backendUnavailable")
         #endif
     }
+
+    public func serverTime(moment: Double) {
+        #if DEBUG
+        print("SwiftyNetwork: serverTime: \(moment)")
+        #endif
+    }
 }
