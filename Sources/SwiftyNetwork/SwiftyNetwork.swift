@@ -374,6 +374,69 @@ extension SwiftyNetwork {
                                       withToken: withToken)
     }
 
+    /// Performs a raw data request to an absolute URL without decoding the response body.
+    ///
+    /// Typically used for requests where the response is not JSON-decodable or needs
+    /// to be handled as binary `Data` (e.g., file downloads or custom payloads).
+    ///
+    /// Returns `.failure` if the URL is invalid, the request fails, or the response
+    /// status code indicates an error.
+    ///
+    /// - Parameters:
+    ///   - url: Absolute URL string to send the request to (e.g., `"https://api.example.com/file"`).
+    ///   - requestType: The HTTP method to use (e.g., `.get`, `.post`).
+    ///   - withToken: Whether to include the authentication token in the request header.
+    ///
+    /// - Returns:
+    ///   - `.success(data, status)` if the request succeeds with a successful status code.
+    ///   - `.failure(status, body)` if the request fails or returns a non-successful status code.
+    ///
+    /// The returned `BackendResponse<Data?>` includes:
+    ///   - `data`: The raw response body if available.
+    ///   - `status`: The parsed `ResponseStatusCode` or `UnknownResponse` if unrecognized.
+    ///
+    /// Example:
+    /// ```swift
+    /// let response = await requestRawData(from: "https://api.example.com/image.png",
+    ///                                     requestType: .get,
+    ///                                     withToken: true)
+    /// switch response {
+    /// case .success(let data, _):
+    ///     // Handle raw data (e.g., image bytes)
+    /// case .failure(let status, _):
+    ///     print("Request failed with status:", status)
+    /// }
+    /// ```
+    public func requestRawData(from url: String,
+                               requestType: HttpType,
+                               withToken: Bool = false) async -> BackendResponse<Data?> {
+        guard let url = URL(string: url) else {
+            return .failure(status: UnknownResponse(rawValue: -1)!, body: nil)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = requestType.rawValue
+
+        if withToken, let token = token, !token.isEmpty {
+            request.addValue(token, forHTTPHeaderField: "Authorization")
+        }
+
+        do {
+            let (data, response) = try await session.data(for: request)
+            let statusCode = (response as? HTTPURLResponse)?.statusCode
+            let status = ResponseStatusCode.from(statusCode ?? -1)?
+                .responseStatus(from: statusCode ?? -1)
+                ?? UnknownResponse(code: statusCode ?? -1)
+            if status.category == .successful {
+                return .success(data, status: status)
+            } else {
+                return .failure(status: status, body: data)
+            }
+        } catch {
+            return .failure(status: UnknownResponse(code: -1), body: nil)
+        }
+    }
+
     // MARK: - Response Handling
     /// Centralized decoding and status handling for requests
     internal func handleDataResponse<T: Decodable>(type: T.Type,
