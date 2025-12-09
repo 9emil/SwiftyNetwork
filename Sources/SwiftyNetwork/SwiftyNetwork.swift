@@ -81,6 +81,7 @@ public class SwiftyNetwork {
     /// Generates a URLRequest with optional token and encoded body.
     internal func generateRequestFrom(url: String,
                                       requestType: HttpType,
+                                      encoderOutputFormatting: JSONEncoder.OutputFormatting,
                                       body: Encodable?,
                                       urlParameters: [URLQueryItem]? = nil,
                                       withToken: Bool = false) -> URLRequest? {
@@ -105,7 +106,9 @@ public class SwiftyNetwork {
         }
         if let body = body {
             do {
-                request.httpBody = try JSONEncoder().encode(body)
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = encoderOutputFormatting
+                request.httpBody = try encoder.encode(body)
             } catch {
                 delegate?.addLogString("Failed to encode body for URL=\(url): \(error)")
             }
@@ -142,10 +145,12 @@ extension SwiftyNetwork {
     public func request<T: Decodable>(url: String,
                                       body: Encodable? = nil,
                                       requestType: HttpType,
+                                      encoderOutputFormatting: JSONEncoder.OutputFormatting = [],
                                       urlParameters: [URLQueryItem]? = nil,
                                       withToken: Bool = false) async -> BackendResponse<T> {
         guard let request = generateRequestFrom(url: url,
                                                 requestType: requestType,
+                                                encoderOutputFormatting: encoderOutputFormatting,
                                                 body: body,
                                                 urlParameters: urlParameters,
                                                 withToken: withToken) else {
@@ -178,6 +183,7 @@ extension SwiftyNetwork {
     public func request<T: Decodable>(endpoint: String,
                                       body: Encodable? = nil,
                                       requestType: HttpType,
+                                      encoderOutputFormatting: JSONEncoder.OutputFormatting = [],
                                       urlParameters: [URLQueryItem]? = nil,
                                       withToken: Bool = false) async -> BackendResponse<T> {
         guard let baseURL else {
@@ -187,6 +193,7 @@ extension SwiftyNetwork {
         return await request(url: baseURL.absoluteString + endpoint,
                              body: body,
                              requestType: requestType,
+                             encoderOutputFormatting: encoderOutputFormatting,
                              urlParameters: urlParameters,
                              withToken: withToken)
     }
@@ -210,10 +217,12 @@ extension SwiftyNetwork {
     public func request(url: String,
                         body: Encodable? = nil,
                         requestType: HttpType,
+                        encoderOutputFormatting: JSONEncoder.OutputFormatting = [],
                         urlParameters: [URLQueryItem]? = nil,
                         withToken: Bool = false) async -> BackendResponse<Void> {
         guard let request = generateRequestFrom(url: url,
                                                 requestType: requestType,
+                                                encoderOutputFormatting: encoderOutputFormatting,
                                                 body: body,
                                                 urlParameters: urlParameters,
                                                 withToken: withToken) else {
@@ -255,6 +264,7 @@ extension SwiftyNetwork {
     public func request(endpoint: String,
                         body: Encodable? = nil,
                         requestType: HttpType,
+                        encoderOutputFormatting: JSONEncoder.OutputFormatting = [],
                         urlParameters: [URLQueryItem]? = nil,
                         withToken: Bool = false) async -> BackendResponse<Void> {
         guard let baseURL else {
@@ -264,6 +274,7 @@ extension SwiftyNetwork {
         return await request(url: baseURL.absoluteString + endpoint,
                              body: body,
                              requestType: requestType,
+                            encoderOutputFormatting: encoderOutputFormatting,
                              urlParameters: urlParameters,
                              withToken: withToken)
     }
